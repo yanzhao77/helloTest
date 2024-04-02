@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="Windows-31J"?>
+<configuration debug="false">
+
+	<!-- ジョブ実行情報 -->
+	<conversionRule conversionWord="jobInfo" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+	<conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+	<conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+	<conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+    <!-- ログレベルと経路の取得です -->
+    <springProperty scope="context" name="log_path" source="logger.batch.path" />
+    <springProperty scope="context" name="log_level" source="logger.batch.level" />
+
+	<!-- コンソールログ出力 -->
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>[%-5level]\t%d{yyyy/MM/dd HH:mm:ss.SSS}\t${HOSTNAME}\t%jobInfo\t%msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+	<!-- 実行ログ配置 -->
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- ログ出力レベル、配置ファイルから取得 -->
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>${log_level}</level>
+		</filter>
+		<!-- ログフォーマット（自定義レイアウト） -->
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="com.softroad.hellotest.log.BatchApplicationLogLayout" />
+			<charset>MS932</charset>
+		</encoder>
+		<file>${log_path}/BatchApplication_ofcon.log</file>
+	    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 出力ファイルの指定 -->
+            <fileNamePattern>${log_path}/BatchApplication_ofcon.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!--ログファイル保持日数-->
+            <maxHistory>30</maxHistory>
+            <maxFileSize>2GB</maxFileSize>
+        </rollingPolicy>
+	</appender>
+
+	<!-- エラーログ配置 -->
+	<appender name="ERR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!-- エラーのレベルのみに出力 -->
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>error</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<!-- ログフォーマット -->
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>[%-5level]\t%d{yyyy/MM/dd HH:mm:ss.SSS}\t${HOSTNAME}\t%jobInfo\t%msg%n</pattern>
+			<charset>MS932</charset>
+		</encoder>
+		<file>${log_path}/BatchError_ofcon.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 出力ファイルの指定 -->
+            <fileNamePattern>${log_path}/BatchError_ofcon.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!--ログファイル保持日数-->
+            <maxHistory>30</maxHistory>
+            <maxFileSize>2GB</maxFileSize>
+        </rollingPolicy>
+	</appender>
+
+	<!-- 3th製品ログに、エラー出力のみ -->
+	<logger name="org" level="OFF" additivity="false">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="ERR_FILE" />
+		<appender-ref ref="FILE" />
+	</logger>
+	<logger name="com.mchange" level="OFF" additivity="false">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="ERR_FILE" />
+		<appender-ref ref="FILE" />
+	</logger>
+	<logger name="com.zaxxer.hikari" level="OFF" additivity="false">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="ERR_FILE" />
+		<appender-ref ref="FILE" />
+	</logger>
+	
+	<!-- ログルート -->
+	<root level="${log_level}">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="ERR_FILE" />
+		<appender-ref ref="FILE" />
+	</root>
+
+</configuration>
